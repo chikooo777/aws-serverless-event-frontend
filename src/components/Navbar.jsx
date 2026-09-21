@@ -20,7 +20,7 @@ export default function Navbar({ isAuthenticated, user, onLogin, onLogout }) {
         <div className="nav-actions">
           <div className="aws-region-badge">
             <Globe size={14} />
-            <span>us-east-1</span>
+            <span>{import.meta.env.VITE_COGNITO_REGION || 'ap-south-1'}</span>
             <span className="region-dot" title="AWS Region Active"></span>
           </div>
 

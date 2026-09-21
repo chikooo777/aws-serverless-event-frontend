@@ -18,7 +18,7 @@ const LAMBDA_FUNCTION_URL = import.meta.env.VITE_LAMBDA_FUNCTION_URL || '';
  */
 export async function submitDataProcessingJob(payload, priority = 'STANDARD', idToken = null) {
   // If an active Lambda Function URL is provided in .env, make the real fetch call
-  if (LAMBDA_FUNCTION_URL && !LAMBDA_FUNCTION_URL.includes('your-lambda-id')) {
+  if (LAMBDA_FUNCTION_URL && !LAMBDA_FUNCTION_URL.includes('your-')) {
     try {
       const headers = {
         'Content-Type': 'application/json',
@@ -29,6 +29,7 @@ export async function submitDataProcessingJob(payload, priority = 'STANDARD', id
         headers['Authorization'] = `Bearer ${idToken}`;
       }
 
+      const startTime = performance.now();
       const response = await fetch(LAMBDA_FUNCTION_URL, {
         method: 'POST',
         headers,
@@ -39,24 +40,32 @@ export async function submitDataProcessingJob(payload, priority = 'STANDARD', id
         })
       });
 
+      const latencyMs = Math.round(performance.now() - startTime);
+
       if (!response.ok) {
-        throw new Error(`AWS Lambda error: ${response.status} ${response.statusText}`);
+        const errText = await response.text().catch(() => '');
+        throw new Error(`AWS Lambda error (${response.status}): ${errText || response.statusText}`);
       }
 
-      const data = await response.json();
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = { message: 'Success' };
+      }
+
       return {
-        jobId: data.jobId || `job-${crypto.randomUUID()}`,
+        jobId: data.jobId || data.id || data.executionArn || `job-${crypto.randomUUID()}`,
         status: data.status || 'PENDING',
         timestamp: new Date().toLocaleString(),
         payload,
         priority,
         eventType: payload.eventType || payload.detailType || 'CustomEvent',
-        latencyMs: Math.floor(Math.random() * 400) + 300,
-        awsRequestId: data.awsRequestId || `aws-req-${Math.random().toString(36).substring(2, 10)}`
+        latencyMs,
+        awsRequestId: data.awsRequestId || response.headers.get('x-amzn-RequestId') || `aws-req-${Math.random().toString(36).substring(2, 10)}`
       };
     } catch (err) {
-      console.warn('Real Lambda fetch failed, falling back to mock response:', err.message);
-      // fallback or rethrow depending on user's preference
+      console.warn('Real Lambda fetch failed:', err.message);
       throw err;
     }
   }
