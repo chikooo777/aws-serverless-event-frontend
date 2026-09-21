@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { Amplify } from 'aws-amplify';
+import { signOut } from 'aws-amplify/auth';
 import Navbar from './components/Navbar';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
 import { INITIAL_JOBS } from './utils/mockData';
 import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
+
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
+      userPoolClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
+    }
+  }
+});
 
 export default function App() {
   // Cognito Authentication Placeholder State
@@ -36,7 +47,12 @@ export default function App() {
   };
 
   // Handle Cognito sign out
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.warn('Amplify signOut warning:', err);
+    }
     setIsAuthenticated(false);
     setUser(null);
     addToast('Signed out from Amazon Cognito session', 'info');
