@@ -1,92 +1,36 @@
-import React, { useState } from 'react';
-import { Layers, ChevronDown, ChevronUp, Cpu, Database, Zap, Shield, ArrowRight, Bell, Radio } from 'lucide-react';
+import React from 'react';
+import { KeyRound, Zap, ListOrdered, Cog, Database } from 'lucide-react';
 
-export default function ArchitectureBanner() {
-  const [isOpen, setIsOpen] = useState(true);
+// Rebuilt to match the pipeline described for this project. The active node
+// highlights the ingress point (Lambda Function URL) since that's what the
+// Ingestion Playground below actually talks to; the traveling packet plays
+// whenever a job is submitted (see App.jsx's `pulseKey`).
+const NODES = [
+  { key: 'auth', label: 'Cognito', sub: 'JWT ID token', icon: KeyRound },
+  { key: 'lambda', label: 'Lambda URL', sub: 'HTTPS ingress', icon: Zap, active: true },
+  { key: 'sqs', label: 'SQS FIFO', sub: 'ordered queue', icon: ListOrdered },
+  { key: 'worker', label: 'Worker Lambda', sub: 'processes event', icon: Cog },
+  { key: 'store', label: 'DynamoDB + SNS', sub: 'persist & notify', icon: Database },
+];
 
+export default function ArchitectureBanner({ pulseKey }) {
   return (
-    <div className="glass-panel pipeline-flow-card">
-      <div className="pipeline-header">
-        <div className="pipeline-title">
-          <Layers size={18} color="var(--aws-amber)" />
-          <span>Decoupled Architecture Flow: Asynchronous Serverless Ingestion Route</span>
-        </div>
-        <button 
-          className="btn-glass" 
-          style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          <span>{isOpen ? 'Collapse Pipeline' : 'Expand Pipeline'}</span>
-        </button>
+    <div className="panel trace-panel">
+      <p className="trace-heading">Event path — where a submitted job actually goes</p>
+      <div className="trace-rail">
+        <div className="trace-line" />
+        {pulseKey ? <div key={pulseKey} className="trace-packet" /> : null}
+        {NODES.map((node) => {
+          const Icon = node.icon;
+          return (
+            <div key={node.key} className={`trace-node${node.active ? ' active' : ''}`}>
+              <div className="trace-node-icon"><Icon size={17} /></div>
+              <div className="trace-node-label">{node.label}</div>
+              <div className="trace-node-sub">{node.sub}</div>
+            </div>
+          );
+        })}
       </div>
-
-      {isOpen && (
-        <div className="pipeline-nodes-row">
-          {/* Node 1: Client */}
-          <div className="pipeline-node-box active">
-            <div className="node-icon-wrap" style={{ color: 'var(--aws-amber)' }}>
-              <Zap size={18} />
-            </div>
-            <div>
-              <div className="node-title">React Client</div>
-              <div className="node-role">Cognito JWT Auth</div>
-            </div>
-          </div>
-
-          <div className="flow-connector"><ArrowRight size={16} /></div>
-
-          {/* Node 2: Lambda Ingress URL */}
-          <div className="pipeline-node-box active">
-            <div className="node-icon-wrap" style={{ color: '#38bdf8' }}>
-              <Cpu size={18} />
-            </div>
-            <div>
-              <div className="node-title">Lambda Function URL</div>
-              <div className="node-role">HTTPS Ingress Gateway</div>
-            </div>
-          </div>
-
-          <div className="flow-connector"><ArrowRight size={16} /></div>
-
-          {/* Node 3: Amazon SQS */}
-          <div className="pipeline-node-box">
-            <div className="node-icon-wrap" style={{ color: '#c084fc' }}>
-              <Radio size={18} />
-            </div>
-            <div>
-              <div className="node-title">Amazon SQS Queue</div>
-              <div className="node-role">Decoupled FIFO Buffer</div>
-            </div>
-          </div>
-
-          <div className="flow-connector"><ArrowRight size={16} /></div>
-
-          {/* Node 4: Worker Lambda */}
-          <div className="pipeline-node-box">
-            <div className="node-icon-wrap" style={{ color: 'var(--aws-amber)' }}>
-              <Cpu size={18} />
-            </div>
-            <div>
-              <div className="node-title">Worker Lambda</div>
-              <div className="node-role">Event Processing Engine</div>
-            </div>
-          </div>
-
-          <div className="flow-connector"><ArrowRight size={16} /></div>
-
-          {/* Node 5: DynamoDB & SNS */}
-          <div className="pipeline-node-box">
-            <div className="node-icon-wrap" style={{ color: 'var(--status-completed)' }}>
-              <Database size={18} />
-            </div>
-            <div>
-              <div className="node-title">DynamoDB & SNS</div>
-              <div className="node-role">State Store & Alerts</div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

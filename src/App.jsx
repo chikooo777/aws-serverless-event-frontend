@@ -11,22 +11,16 @@ import JobTable from './components/JobTable';
 import { INITIAL_JOBS, SAMPLE_PAYLOADS } from './utils/mockData';
 
 // Icons
-import { 
-  Cloud, 
-  Globe, 
-  Send, 
-  RefreshCw, 
-  Sparkles, 
-  CheckCircle2, 
-  AlertCircle, 
-  Info, 
-  FileCode, 
-  Cpu, 
-  Zap, 
+import {
+  Globe,
+  Send,
+  RefreshCw,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  Zap,
   LogOut,
-  Layers,
-  TrendingUp,
-  Clock
 } from 'lucide-react';
 
 // 1. Configure Amplify with Cognito User Pool
@@ -47,7 +41,7 @@ export default function App() {
   const [payload, setPayload] = useState(defaultPayload);
   const [priority, setPriority] = useState('HIGH');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Real-time Reactive Feedback State
   const [lastSubmission, setLastSubmission] = useState(null);
   const [statusMessage, setStatusMessage] = useState('');
@@ -56,6 +50,9 @@ export default function App() {
   // Job History Pipeline State
   const [jobs, setJobs] = useState(INITIAL_JOBS);
   const [toasts, setToasts] = useState([]);
+
+  // Drives the traveling-packet animation on the pipeline trace; bumped on every submit
+  const [pulseKey, setPulseKey] = useState(0);
 
   // Toast Helper
   const addToast = (message, type = 'info') => {
@@ -109,6 +106,7 @@ export default function App() {
     setIsSubmitting(true);
     setStatusMessage('Dispatching payload to AWS Lambda Function URL...');
     setStatusType('info');
+    setPulseKey((k) => k + 1);
 
     const startTime = performance.now();
 
@@ -191,211 +189,164 @@ export default function App() {
     }
   };
 
-  // 3. Wrap application in Authenticator with Glassmorphism styling
+  // 3. Wrap application in Authenticator
   return (
     <Authenticator>
       {({ signOut, user }) => (
         <div className="app-container">
-          {/* Frosted Glass Topbar */}
-          <header className="navbar-glass">
+          {/* Top rail */}
+          <header className="navbar">
             <div className="nav-wrapper">
               <div className="brand-wrap">
-                <div className="brand-icon-glass">
-                  <Zap size={22} />
+                <div className="brand-icon">
+                  <Zap size={18} />
                 </div>
                 <div>
-                  <div className="brand-title">AWS Serverless Event Console</div>
-                  <div className="brand-sub">
-                    <span>Decoupled SQS + Lambda + DynamoDB Pipeline</span>
-                  </div>
+                  <div className="brand-title">Serverless Event Console</div>
+                  <div className="brand-sub">SQS · Lambda · DynamoDB</div>
                 </div>
               </div>
 
               <div className="nav-actions">
                 <div className="region-pill">
-                  <span className="pulse-dot-green"></span>
+                  <span className="pulse-dot"></span>
                   <span>ap-south-1</span>
                 </div>
 
-                <div className="user-glass-pill">
-                  <span className="user-email-text">
+                <div className="user-pill">
+                  <span className="user-email">
                     {user?.signInDetails?.loginId || user?.username || 'durveshraysing43@gmail.com'}
                   </span>
-                  <button 
-                    onClick={signOut} 
-                    className="btn-glass btn-glass-danger"
-                    title="Sign Out of Amazon Cognito Session"
-                  >
+                  <button onClick={signOut} className="btn btn-danger" title="Sign out">
                     <LogOut size={13} />
-                    <span>Sign Out</span>
+                    <span>Sign out</span>
                   </button>
                 </div>
               </div>
             </div>
           </header>
 
-          {/* Main Glass Workspace */}
           <main className="main-content">
-            {/* Header & Developer Profile Card */}
             <DeveloperProfile />
 
-            {/* Decoupled Architecture Flow Visualizer */}
-            <ArchitectureBanner />
+            <ArchitectureBanner pulseKey={pulseKey} />
 
-            {/* Two-Column Grid: Ingestion Playground + Status Visualizer */}
             <div className="dashboard-grid">
-              {/* Left Column: Ingestion Playground Card */}
-              <section className="glass-panel ingestion-card" aria-label="Ingestion Playground">
-                <div className="card-title-wrap">
-                  <h2 className="card-title">
-                    <Cpu size={20} color="var(--aws-amber)" />
-                    <span>Job Ingestion Playground</span>
+              {/* Left: Ingestion Playground */}
+              <section className="panel" aria-label="Ingestion Playground">
+                <div className="section-head">
+                  <h2 className="section-title">
+                    <Send size={17} color="var(--amber)" />
+                    <span>Ingestion playground</span>
                   </h2>
-                  <p className="card-sub">
-                    Direct HTTPS payload ingress via secure Lambda Function URL
-                  </p>
+                  <p className="section-sub">Send a payload straight to the live Lambda Function URL</p>
                 </div>
 
-                {/* Target Endpoint Indicator */}
-                <div className="endpoint-glass-banner">
-                  <div className="endpoint-banner-title">
-                    <Globe size={13} />
-                    <span>Target Lambda Function URL Endpoint:</span>
+                <div className="ingestion-body">
+                  <div className="endpoint-strip">
+                    <div className="endpoint-strip-label">
+                      <Globe size={12} />
+                      <span>Target endpoint</span>
+                    </div>
+                    <div className="endpoint-strip-url">POST {LAMBDA_FUNCTION_URL}</div>
                   </div>
-                  <div className="endpoint-url-code">
-                    POST {LAMBDA_FUNCTION_URL}
-                  </div>
-                </div>
 
-                {/* Template Quick Selectors */}
-                <div className="form-group">
-                  <div className="form-label-row">
-                    <span>Quick Event Templates</span>
-                    <div className="template-chips">
-                      <button 
-                        type="button" 
-                        className="glass-chip" 
-                        onClick={() => loadSample('ORDER_PROCESSING')}
-                      >
-                        Order Event (SQS FIFO)
-                      </button>
-                      <button 
-                        type="button" 
-                        className="glass-chip" 
-                        onClick={() => loadSample('IMAGE_RESIZE')}
-                      >
-                        S3 Pipeline
-                      </button>
-                      <button 
-                        type="button" 
-                        className="glass-chip" 
-                        onClick={() => loadSample('IOT_TELEMETRY')}
-                      >
-                        IoT Device
-                      </button>
+                  <div>
+                    <div className="field-label-row">
+                      <span className="field-label">Quick templates</span>
+                      <div className="template-chips">
+                        <button type="button" className="chip" onClick={() => loadSample('ORDER_PROCESSING')}>
+                          Order event
+                        </button>
+                        <button type="button" className="chip" onClick={() => loadSample('IMAGE_RESIZE')}>
+                          S3 pipeline
+                        </button>
+                        <button type="button" className="chip" onClick={() => loadSample('IOT_TELEMETRY')}>
+                          IoT device
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Frosted JSON Editor */}
-                <div className="form-group">
-                  <div className="form-label-row">
-                    <span>Event Payload (JSON)</span>
-                    <button 
-                      type="button" 
-                      className="glass-chip" 
-                      onClick={formatJson}
-                    >
-                      <Sparkles size={11} style={{ display: 'inline', marginRight: '3px' }} />
-                      Prettify JSON
-                    </button>
-                  </div>
+                  <div>
+                    <div className="field-label-row">
+                      <span className="field-label">Event payload (JSON)</span>
+                      <button type="button" className="chip" onClick={formatJson}>
+                        <Sparkles size={11} style={{ display: 'inline', marginRight: '4px' }} />
+                        Format
+                      </button>
+                    </div>
 
-                  <div className="editor-glass-container">
-                    <textarea 
-                      rows="9" 
-                      className="frosted-textarea"
-                      placeholder="Paste JSON payload here..."
-                      value={payload}
-                      onChange={(e) => setPayload(e.target.value)}
-                      spellCheck="false"
-                    />
-                    <div className="editor-footer-glass">
-                      <span>UTF-8 Monospace</span>
-                      <span>{new Blob([payload]).size} bytes</span>
+                    <div className="editor-shell">
+                      <textarea
+                        rows="9"
+                        className="editor-textarea"
+                        placeholder="Paste JSON payload here..."
+                        value={payload}
+                        onChange={(e) => setPayload(e.target.value)}
+                        spellCheck="false"
+                      />
+                      <div className="editor-footer">
+                        <span>UTF-8</span>
+                        <span>{new Blob([payload]).size} bytes</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Glowing Submit Button */}
-                <button 
-                  id="submit-job-btn"
-                  onClick={handleSubmit}
-                  className="btn-glow-submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <RefreshCw size={18} className="spin-icon" />
-                      <span>Transmitting to Lambda Function URL...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send size={18} />
-                      <span>Submit Processing Job</span>
-                    </>
+                  <button id="submit-job-btn" onClick={handleSubmit} className="submit-btn" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <RefreshCw size={17} className="spin" />
+                        <span>Sending to Lambda...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send size={17} />
+                        <span>Send event</span>
+                      </>
+                    )}
+                  </button>
+
+                  {statusMessage && (
+                    <div className={`status-box ${statusType}`}>
+                      {statusType === 'success' && <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: '2px' }} />}
+                      {statusType === 'error' && <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />}
+                      {statusType === 'info' && <Info size={16} style={{ flexShrink: 0, marginTop: '2px' }} />}
+                      <div>{statusMessage}</div>
+                    </div>
                   )}
-                </button>
-
-                {/* Reactive Status Feedback Card */}
-                {statusMessage && (
-                  <div className={`status-feedback-box ${statusType}`}>
-                    {statusType === 'success' && <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: '2px' }} />}
-                    {statusType === 'error' && <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />}
-                    {statusType === 'info' && <Info size={16} style={{ flexShrink: 0, marginTop: '2px' }} />}
-                    <div>{statusMessage}</div>
-                  </div>
-                )}
+                </div>
               </section>
 
-              {/* Right Column: Reactive Pipeline Status & Table */}
+              {/* Right: Latest ingress + job ledger */}
               <section aria-label="Job Processing Status Visualizer">
-                {/* Last Ingress Quick Card */}
                 {lastSubmission && (
-                  <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', marginBottom: '1.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', fontWeight: 700 }}>
-                        Latest Ingress Response
-                      </span>
-                      <span className={`neon-badge ${lastSubmission.status.toLowerCase()}`}>
-                        <span className="neon-dot"></span>
+                  <div className="panel latest-card">
+                    <div className="latest-card-head">
+                      <span className="latest-card-label">Latest ingress response</span>
+                      <span className={`status-badge ${lastSubmission.status.toLowerCase()}`}>
+                        <span className="dot"></span>
                         {lastSubmission.status}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--aws-cyan)' }}>
-                        UUID: {lastSubmission.jobId}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        Latency: {lastSubmission.latencyMs} ms
-                      </div>
+                    <div className="latest-card-row">
+                      <div className="latest-uuid">{lastSubmission.jobId}</div>
+                      <div className="latest-latency">{lastSubmission.latencyMs} ms</div>
                     </div>
                   </div>
                 )}
 
-                {/* Job Execution Table */}
                 <JobTable jobs={jobs} addToast={addToast} />
               </section>
             </div>
           </main>
 
-          {/* Floating Glass Toasts */}
-          <div className="toast-glass-container" aria-live="polite">
+          <div className="toast-stack" aria-live="polite">
             {toasts.map((toast) => (
-              <div key={toast.id} className={`toast-glass ${toast.type}`}>
-                {toast.type === 'success' && <CheckCircle2 size={16} color="var(--status-completed)" />}
-                {toast.type === 'error' && <AlertCircle size={16} color="var(--status-failed)" />}
-                {toast.type === 'info' && <Info size={16} color="var(--aws-cyan)" />}
+              <div key={toast.id} className={`toast ${toast.type}`}>
+                {toast.type === 'success' && <CheckCircle2 size={16} color="var(--mint)" />}
+                {toast.type === 'error' && <AlertCircle size={16} color="var(--coral)" />}
+                {toast.type === 'info' && <Info size={16} color="var(--cyan)" />}
                 <span>{toast.message}</span>
               </div>
             ))}

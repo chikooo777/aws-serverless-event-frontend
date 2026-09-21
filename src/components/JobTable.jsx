@@ -10,12 +10,12 @@ export default function JobTable({ jobs, addToast }) {
   const handleCopyId = (id) => {
     navigator.clipboard.writeText(id);
     setCopiedId(id);
-    addToast(`Job ID copied to clipboard: ${id.slice(0, 16)}...`, 'info');
+    addToast(`Copied job ID: ${id.slice(0, 16)}...`, 'info');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
   const filteredJobs = jobs.filter((job) => {
-    const matchesSearch = 
+    const matchesSearch =
       job.jobId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (job.eventType && job.eventType.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'ALL' || job.status === statusFilter;
@@ -23,38 +23,35 @@ export default function JobTable({ jobs, addToast }) {
   });
 
   return (
-    <div className="glass-panel job-table-card">
-      <div className="card-title-wrap">
-        <h2 className="card-title">
-          <Database size={20} color="var(--aws-cyan)" />
-          <span>Job Processing Pipeline Visualizer</span>
+    <div className="panel" aria-label="Job Processing Status Visualizer">
+      <div className="section-head">
+        <h2 className="section-title">
+          <Database size={18} color="var(--cyan)" />
+          <span>Job ledger</span>
         </h2>
-        <p className="card-sub">
-          Asynchronous execution logs committed to Amazon DynamoDB & SQS
-        </p>
+        <p className="section-sub">Execution history committed to DynamoDB</p>
       </div>
 
-      {/* Glass Toolbar */}
-      <div className="table-toolbar-glass">
-        <div className="search-glass-wrap">
-          <Search size={15} className="search-glass-icon" />
+      <div className="table-toolbar" style={{ marginTop: '1rem' }}>
+        <div className="search-wrap">
+          <Search size={14} className="search-icon" />
           <input
             type="text"
-            className="search-glass-input"
-            placeholder="Search by Job UUID or Event Type..."
+            className="search-input"
+            placeholder="Search by job ID or event type"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Filter size={14} color="var(--text-muted)" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Filter size={13} color="var(--slate)" />
           <select
-            className="filter-glass-select"
+            className="filter-select"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="ALL">All Statuses</option>
+            <option value="ALL">All statuses</option>
             <option value="COMPLETED">Completed</option>
             <option value="PENDING">Pending</option>
             <option value="PROCESSING">Processing</option>
@@ -63,17 +60,16 @@ export default function JobTable({ jobs, addToast }) {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="table-glass-scroll">
-        <table className="glass-table">
+      <div className="table-scroll">
+        <table className="data-table">
           <thead>
             <tr>
-              <th>Job UUID</th>
-              <th>Event / Detail Type</th>
-              <th>Timestamp</th>
+              <th>Job ID</th>
+              <th>Event type</th>
+              <th>Submitted</th>
               <th>Latency</th>
               <th>Status</th>
-              <th style={{ textAlign: 'right' }}>Action</th>
+              <th style={{ textAlign: 'right' }}>Payload</th>
             </tr>
           </thead>
           <tbody>
@@ -81,61 +77,45 @@ export default function JobTable({ jobs, addToast }) {
               filteredJobs.map((job) => (
                 <tr key={job.jobId}>
                   <td>
-                    <div className="job-uuid-cell">
+                    <div className="uuid-cell">
                       <span>{job.jobId.slice(0, 18)}...</span>
-                      <button
-                        className="copy-glass-btn"
-                        onClick={() => handleCopyId(job.jobId)}
-                        title="Copy full UUID"
-                      >
-                        {copiedId === job.jobId ? (
-                          <Check size={13} color="var(--status-completed)" />
-                        ) : (
-                          <Copy size={13} />
-                        )}
+                      <button className="icon-btn" onClick={() => handleCopyId(job.jobId)} title="Copy full ID">
+                        {copiedId === job.jobId ? <Check size={13} color="var(--mint)" /> : <Copy size={13} />}
                       </button>
                     </div>
                   </td>
+                  <td style={{ fontWeight: 600 }}>{job.eventType || 'DataProcessing'}</td>
                   <td>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {job.eventType || 'DataProcessing'}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ color: 'var(--slate)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Clock size={12} />
                       {job.timestamp}
                     </span>
                   </td>
-                  <td>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {job.latencyMs ? `${job.latencyMs} ms` : '—'}
-                    </span>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--slate)' }}>
+                    {job.latencyMs ? `${job.latencyMs} ms` : '—'}
                   </td>
                   <td>
-                    <span className={`neon-badge ${job.status.toLowerCase()}`}>
-                      <span className="neon-dot"></span>
+                    <span className={`status-badge ${job.status.toLowerCase()}`}>
+                      <span className="dot" />
                       {job.status}
                     </span>
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <button
-                      className="btn-glass"
-                      style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
-                      onClick={() => setSelectedPayload(job)}
-                    >
+                    <button className="btn" style={{ padding: '0.3rem 0.6rem', fontSize: '0.74rem' }} onClick={() => setSelectedPayload(job)}>
                       <Eye size={12} />
-                      <span>Inspect</span>
+                      <span>View</span>
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '3rem 1.5rem', color: 'var(--text-muted)' }}>
-                  <Database size={32} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
-                  <p style={{ fontWeight: 600 }}>No processing jobs found</p>
-                  <p style={{ fontSize: '0.8rem' }}>Submit a payload via the Ingestion Playground above.</p>
+                <td colSpan={6}>
+                  <div className="empty-state">
+                    <Database size={28} style={{ opacity: 0.4 }} />
+                    <p>No jobs yet</p>
+                    <p>Submit a payload from the Ingestion Playground to see it here.</p>
+                  </div>
                 </td>
               </tr>
             )}
@@ -143,26 +123,25 @@ export default function JobTable({ jobs, addToast }) {
         </table>
       </div>
 
-      {/* Modal Inspector */}
       {selectedPayload && (
-        <div className="modal-glass-overlay" onClick={() => setSelectedPayload(null)}>
-          <div className="modal-glass-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-glass-header">
+        <div className="modal-overlay" onClick={() => setSelectedPayload(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
               <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Terminal size={16} color="var(--aws-cyan)" />
-                  Payload Inspector: {selectedPayload.jobId.slice(0, 18)}...
+                <h3 className="modal-title">
+                  <Terminal size={15} color="var(--cyan)" />
+                  {selectedPayload.jobId.slice(0, 18)}...
                 </h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  Submitted: {selectedPayload.timestamp} | Status: {selectedPayload.status}
+                <span className="modal-meta">
+                  {selectedPayload.timestamp} · {selectedPayload.status}
                 </span>
               </div>
-              <button className="btn-glass" onClick={() => setSelectedPayload(null)} style={{ padding: '0.3rem' }}>
+              <button className="icon-btn" onClick={() => setSelectedPayload(null)}>
                 <X size={16} />
               </button>
             </div>
-            <div className="modal-glass-body">
-              <pre className="modal-code-pre">
+            <div className="modal-body">
+              <pre className="modal-code">
                 {typeof selectedPayload.payload === 'object'
                   ? JSON.stringify(selectedPayload.payload, null, 2)
                   : selectedPayload.payload}
