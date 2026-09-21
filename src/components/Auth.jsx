@@ -1,25 +1,32 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, Mail, ArrowRight, Server, Key } from 'lucide-react';
+import { ShieldCheck, Lock, ArrowRight, Key } from 'lucide-react';
+import { signIn } from 'aws-amplify/auth';
 
 export default function Auth({ onLoginSuccess }) {
-  const [email, setEmail] = useState('cloud.architect@example.com');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulated Cognito authentication latency
-    setTimeout(() => {
+    try {
+      const { isSignedIn } = await signIn({ username: email, password });
+      
+      if (isSignedIn) {
+        onLoginSuccess({
+          email: email,
+          name: 'Cloud Architect',
+          role: 'Admin'
+        });
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert(`Authentication Failed: ${error.message}`);
+    } finally {
       setIsLoading(false);
-      onLoginSuccess({
-        email: email || 'architect@aws.internal',
-        name: 'Solutions Architect',
-        sub: 'cognito-sub-190283-us-east-1',
-        token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.mock_cognito_id_token'
-      });
-    }, 450);
+    }
   };
 
   return (
@@ -91,13 +98,9 @@ export default function Auth({ onLoginSuccess }) {
         <div className="auth-demo-hint">
           <div style={{ fontWeight: 600, color: 'var(--aws-amber)', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
             <Key size={13} />
-            <span>Developer Note / Amplify Drop-in:</span>
+            <span>Connected to Amazon Cognito</span>
           </div>
-          To connect AWS Amplify, replace the mock toggle with:
-          <br />
-          <code style={{ color: 'var(--aws-cyan)', fontFamily: 'var(--font-mono)' }}>
-            await signIn(&#123; username, password &#125;)
-          </code>
+          User Pool: <code style={{ color: 'var(--aws-cyan)', fontFamily: 'var(--font-mono)' }}>{import.meta.env.VITE_COGNITO_USER_POOL_ID || 'ap-south-1'}</code>
         </div>
       </div>
     </div>
