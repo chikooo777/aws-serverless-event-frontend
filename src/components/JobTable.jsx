@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Eye, Search, Filter, Database, Clock, X } from 'lucide-react';
+import { Copy, Check, Eye, Search, Filter, Database, Clock, X, Terminal } from 'lucide-react';
 
 export default function JobTable({ jobs, addToast }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -7,15 +7,13 @@ export default function JobTable({ jobs, addToast }) {
   const [copiedId, setCopiedId] = useState(null);
   const [selectedPayload, setSelectedPayload] = useState(null);
 
-  // Copy Job ID to clipboard with feedback
   const handleCopyId = (id) => {
     navigator.clipboard.writeText(id);
     setCopiedId(id);
-    addToast(`Job ID copied to clipboard: ${id.slice(0, 18)}...`, 'info');
+    addToast(`Job ID copied to clipboard: ${id.slice(0, 16)}...`, 'info');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Filter jobs based on search term and status
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch = 
       job.jobId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -25,73 +23,70 @@ export default function JobTable({ jobs, addToast }) {
   });
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <div>
-          <h2 className="card-title">
-            <Database size={18} color="var(--aws-cyan)" />
-            Job Execution Status
-          </h2>
-          <p className="card-subtitle">
-            Asynchronous event logs stored in Amazon DynamoDB & EventBridge
-          </p>
-        </div>
+    <div className="glass-panel job-table-card">
+      <div className="card-title-wrap">
+        <h2 className="card-title">
+          <Database size={20} color="var(--aws-cyan)" />
+          <span>Job Processing Pipeline Visualizer</span>
+        </h2>
+        <p className="card-sub">
+          Asynchronous execution logs committed to Amazon DynamoDB & SQS
+        </p>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="table-controls">
-        <div className="search-input-wrap">
-          <Search size={15} className="search-icon" />
+      {/* Glass Toolbar */}
+      <div className="table-toolbar-glass">
+        <div className="search-glass-wrap">
+          <Search size={15} className="search-glass-icon" />
           <input
             type="text"
-            className="search-input"
-            placeholder="Search by Job ID or Event Type..."
+            className="search-glass-input"
+            placeholder="Search by Job UUID or Event Type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <Filter size={14} color="var(--text-muted)" />
           <select
-            className="filter-select"
+            className="filter-glass-select"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="ALL">All Statuses</option>
+            <option value="COMPLETED">Completed</option>
             <option value="PENDING">Pending</option>
             <option value="PROCESSING">Processing</option>
-            <option value="COMPLETED">Completed</option>
             <option value="FAILED">Failed</option>
           </select>
         </div>
       </div>
 
-      {/* Table Content */}
-      <div className="table-responsive">
-        <table className="job-table">
+      {/* Table */}
+      <div className="table-glass-scroll">
+        <table className="glass-table">
           <thead>
             <tr>
-              <th>Job ID</th>
+              <th>Job UUID</th>
               <th>Event / Detail Type</th>
               <th>Timestamp</th>
               <th>Latency</th>
               <th>Status</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
+              <th style={{ textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
           <tbody>
             {filteredJobs.length > 0 ? (
               filteredJobs.map((job) => (
                 <tr key={job.jobId}>
-                  {/* Job ID with Copy button */}
                   <td>
-                    <div className="job-id-cell">
+                    <div className="job-uuid-cell">
                       <span>{job.jobId.slice(0, 18)}...</span>
                       <button
-                        className="copy-btn"
+                        className="copy-glass-btn"
                         onClick={() => handleCopyId(job.jobId)}
-                        title="Copy complete UUID"
+                        title="Copy full UUID"
                       >
                         {copiedId === job.jobId ? (
                           <Check size={13} color="var(--status-completed)" />
@@ -101,63 +96,46 @@ export default function JobTable({ jobs, addToast }) {
                       </button>
                     </div>
                   </td>
-
-                  {/* Event Type */}
                   <td>
                     <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {job.eventType || 'CustomEvent'}
+                      {job.eventType || 'DataProcessing'}
                     </span>
                   </td>
-
-                  {/* Timestamp */}
                   <td>
-                    <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Clock size={12} />
                       {job.timestamp}
                     </span>
                   </td>
-
-                  {/* Latency */}
                   <td>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       {job.latencyMs ? `${job.latencyMs} ms` : '—'}
                     </span>
                   </td>
-
-                  {/* Status Badge with animation */}
                   <td>
-                    <span className={`status-badge ${job.status.toLowerCase()}`}>
-                      <span className="pulse-dot"></span>
+                    <span className={`neon-badge ${job.status.toLowerCase()}`}>
+                      <span className="neon-dot"></span>
                       {job.status}
                     </span>
                   </td>
-
-                  {/* Actions */}
                   <td style={{ textAlign: 'right' }}>
                     <button
-                      className="btn btn-secondary"
-                      style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                      className="btn-glass"
+                      style={{ padding: '0.25rem 0.65rem', fontSize: '0.75rem' }}
                       onClick={() => setSelectedPayload(job)}
-                      title="Inspect JSON Payload"
                     >
-                      <Eye size={13} />
-                      <span>Payload</span>
+                      <Eye size={12} />
+                      <span>Inspect</span>
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6}>
-                  <div className="empty-state">
-                    <Database size={32} className="empty-state-icon" />
-                    <p style={{ fontWeight: 600 }}>No jobs found</p>
-                    <p style={{ fontSize: '0.8rem' }}>
-                      {searchTerm || statusFilter !== 'ALL' 
-                        ? 'Try clearing your search query or status filter.' 
-                        : 'Submit a new data processing job using the form to see it here.'}
-                    </p>
-                  </div>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '3rem 1.5rem', color: 'var(--text-muted)' }}>
+                  <Database size={32} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
+                  <p style={{ fontWeight: 600 }}>No processing jobs found</p>
+                  <p style={{ fontSize: '0.8rem' }}>Submit a payload via the Ingestion Playground above.</p>
                 </td>
               </tr>
             )}
@@ -165,30 +143,29 @@ export default function JobTable({ jobs, addToast }) {
         </table>
       </div>
 
-      {/* JSON Payload Inspection Modal */}
+      {/* Modal Inspector */}
       {selectedPayload && (
-        <div className="modal-overlay" onClick={() => setSelectedPayload(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="modal-glass-overlay" onClick={() => setSelectedPayload(null)}>
+          <div className="modal-glass-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-glass-header">
               <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Terminal size={16} color="var(--aws-cyan)" />
                   Payload Inspector: {selectedPayload.jobId.slice(0, 18)}...
                 </h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   Submitted: {selectedPayload.timestamp} | Status: {selectedPayload.status}
                 </span>
               </div>
-              <button 
-                className="btn btn-ghost" 
-                style={{ padding: '0.3rem' }}
-                onClick={() => setSelectedPayload(null)}
-              >
-                <X size={18} />
+              <button className="btn-glass" onClick={() => setSelectedPayload(null)} style={{ padding: '0.3rem' }}>
+                <X size={16} />
               </button>
             </div>
-            <div className="modal-body">
-              <pre className="modal-json-pre">
-                {JSON.stringify(selectedPayload.payload, null, 2)}
+            <div className="modal-glass-body">
+              <pre className="modal-code-pre">
+                {typeof selectedPayload.payload === 'object'
+                  ? JSON.stringify(selectedPayload.payload, null, 2)
+                  : selectedPayload.payload}
               </pre>
             </div>
           </div>
