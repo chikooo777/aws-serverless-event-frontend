@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Amplify } from 'aws-amplify';
-import { signOut } from 'aws-amplify/auth';
-import Navbar from './components/Navbar';
-import Auth from './components/Auth';
-import Dashboard from './components/Dashboard';
-import { INITIAL_JOBS } from './utils/mockData';
-import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { Authenticator } from '@aws-amplify/ui-react';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import '@aws-amplify/ui-react/styles.css';
+import ArchitectureBanner from './components/ArchitectureBanner';
+import JobTable from './components/JobTable';
+import { INITIAL_JOBS, SAMPLE_PAYLOADS } from './utils/mockData';
+import { Sparkles, Send, RefreshCw, Database, Layers, Globe } from 'lucide-react';
 
+// 1. Configure Amplify with your Cognito environment variables
 Amplify.configure({
   Auth: {
     Cognito: {
@@ -16,19 +18,13 @@ Amplify.configure({
   }
 });
 
+const LAMBDA_URL = 'https://xvctobmuszfdur5l2tvyve5j5e0hzdtw.lambda-url.ap-south-1.on.aws/';
+
 export default function App() {
-  // Cognito Authentication Placeholder State
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [user, setUser] = useState({
-    name: 'AWS Solutions Architect',
-    email: 'architect@aws.internal',
-    role: 'Cloud Architect'
-  });
-
-  // Global Job List State (initialized with realistic seed events)
+  const [payload, setPayload] = useState(JSON.stringify(SAMPLE_PAYLOADS.ORDER_PROCESSING.payload, null, 2));
+  const [status, setStatus] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [jobs, setJobs] = useState(INITIAL_JOBS);
-
-  // Toast Notification System
   const [toasts, setToasts] = useState([]);
 
   const addToast = (message, type = 'info') => {
@@ -39,89 +35,284 @@ export default function App() {
     }, 4000);
   };
 
-  // Handle Cognito mock login
-  const handleLogin = (authenticatedUser) => {
-    setUser(authenticatedUser);
-    setIsAuthenticated(true);
-    addToast('Successfully authenticated via Amazon Cognito', 'success');
-  };
-
-  // Handle Cognito sign out
-  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (err) {
-      console.warn('Amplify signOut warning:', err);
+  // Helper to load sample payloads quickly
+  const loadSample = (sampleKey) => {
+    if (SAMPLE_PAYLOADS[sampleKey]) {
+      setPayload(JSON.stringify(SAMPLE_PAYLOADS[sampleKey].payload, null, 2));
+      setStatus(`Loaded template: ${SAMPLE_PAYLOADS[sampleKey].name}`);
     }
-    setIsAuthenticated(false);
-    setUser(null);
-    addToast('Signed out from Amazon Cognito session', 'info');
   };
 
-  // Handle new Job Submission into EventBridge
-  const handleJobCreated = (newJob) => {
-    // 1. Add to top of list as PENDING
-    setJobs((prev) => [newJob, ...prev]);
-
-    // 2. Asynchronously simulate event-driven worker progression:
-    // EventBridge routes event -> Lambda worker starts processing (2.5s)
-    setTimeout(() => {
-      setJobs((prev) =>
-        prev.map((j) =>
-          j.jobId === newJob.jobId && j.status === 'PENDING'
-            ? { ...j, status: 'PROCESSING' }
-            : j
-        )
-      );
-    }, 2500);
-
-    // Lambda worker completes job -> writes final state to DynamoDB (5.0s)
-    setTimeout(() => {
-      setJobs((prev) =>
-        prev.map((j) =>
-          j.jobId === newJob.jobId && (j.status === 'PENDING' || j.status === 'PROCESSING')
-            ? { ...j, status: 'COMPLETED' }
-            : j
-        )
-      );
-      addToast(`Job ${newJob.jobId.slice(0, 16)} completed processing!`, 'success');
-    }, 5000);
+  // Prettify JSON helper
+  const formatJson = () => {
+    try {
+      const parsed = JSON.parse(payload);
+      setPayload(JSON.stringify(parsed, null, 2));
+      setStatus('JSON formatted cleanly');
+    } catch (err) {
+      setStatus(`JSON syntax error: ${err.message}`);
+    }
   };
 
+  // 2. The submit function that securely calls your Lambda URL
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setStatus('Sending request to AWS Lambda...');
+
+      // Grab the secure JWT token from the logged-in user
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
+
+      let parsedPayload = payload;
+      try {
+        parsedPayload = JSON.parse(payload);
+      } catch {
+        // allow raw string if not JSON
+      }
+
+      const startTime = performance.now();
+
+      // Send the request with the token in the Authorization header
+      const response = await fetch(LAMBDA_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ 
+          data: payload,
+          payload: parsedPayload,
+          submittedAt: new Date().toISOString()
+        })
+      });
+
+      const latencyMs = Math.round(performance.now() - startTime);
+
+      if (response.ok) {
+        let result = {};
+        try {
+          result = await response.json();
+        } catch {
+          result = { message: 'Processed successfully' };
+        }
+
+        const jobId = result.jobId || result.id || `job-${crypto.randomUUID()}`;
+        const message = result.message || 'Job accepted into processing pipeline';
+        const successStatus = `Success: ${message} (Job ID: ${jobId})`;
+        setStatus(successStatus);
+        addToast(successStatus, 'success');
+
+        // Add submitted job to live Job Status Table
+        const newJob = {
+          jobId,
+          eventType: typeof parsedPayload === 'object' ? (parsedPayload.eventType || parsedPayload.detailType || 'DataProcessing') : 'DataProcessing',
+          status: 'COMPLETED',
+          timestamp: new Date().toLocaleString(),
+          latencyMs,
+          payload: parsedPayload
+        };
+        setJobs((prev) => [newJob, ...prev]);
+
+      } else {
+        const errorText = await response.text().catch(() => '');
+        const errMsg = `Error: ${response.status} ${response.statusText} ${errorText}`;
+        setStatus(errMsg);
+        addToast(errMsg, 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      const failMsg = `Failed to send request: ${error.message}`;
+      setStatus(failMsg);
+      addToast(failMsg, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 3. Wrap the UI in the Authenticator component
   return (
-    <div className="app-container">
-      {/* Top AWS Console Navigation Bar */}
-      <Navbar
-        isAuthenticated={isAuthenticated}
-        user={user}
-        onLogin={() => setIsAuthenticated(true)}
-        onLogout={handleLogout}
-      />
+    <Authenticator>
+      {({ signOut, user }) => (
+        <div className="app-container">
+          {/* Header */}
+          <header className="navbar" style={{ padding: '1rem 2rem' }}>
+            <div className="nav-wrapper">
+              <div className="brand">
+                <div className="brand-icon">⚡</div>
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', margin: 0, fontWeight: 800 }}>
+                    AWS Serverless Data Processor
+                  </h2>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    Event-Driven Architecture | Region: ap-south-1
+                  </span>
+                </div>
+              </div>
 
-      {/* Main View: Conditional Rendering based on Cognito Authentication */}
-      <main className="main-content">
-        {isAuthenticated ? (
-          <Dashboard
-            jobs={jobs}
-            onJobCreated={handleJobCreated}
-            addToast={addToast}
-          />
-        ) : (
-          <Auth onLoginSuccess={handleLogin} />
-        )}
-      </main>
+              <div className="nav-actions">
+                <div className="aws-region-badge">
+                  <Globe size={14} />
+                  <span>ap-south-1</span>
+                  <span className="region-dot" title="AWS Region Active"></span>
+                </div>
 
-      {/* Floating Toast Notification Stack */}
-      <div className="toast-container" aria-live="polite">
-        {toasts.map((toast) => (
-          <div key={toast.id} className={`toast ${toast.type}`}>
-            {toast.type === 'success' && <CheckCircle2 size={16} color="var(--status-completed)" />}
-            {toast.type === 'error' && <AlertCircle size={16} color="var(--status-failed)" />}
-            {toast.type === 'info' && <Info size={16} color="var(--aws-cyan)" />}
-            <span>{toast.message}</span>
+                <div className="user-profile">
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    Welcome, <strong style={{ color: 'var(--text-primary)' }}>{user?.signInDetails?.loginId || user?.username || 'Architect'}</strong>
+                  </span>
+                  <button 
+                    onClick={signOut} 
+                    className="btn btn-secondary btn-outline-danger"
+                    style={{ padding: '0.45rem 0.9rem', fontSize: '0.8rem' }}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content Area */}
+          <main className="main-content" style={{ padding: '2rem 1.5rem' }}>
+            {/* Architecture Flow Banner */}
+            <ArchitectureBanner />
+
+            <div className="dashboard-grid">
+              {/* Submit Data Processing Job Card */}
+              <section className="card" aria-label="Submit Data Processing Job Section">
+                <div className="card-header">
+                  <div>
+                    <h3 className="card-title" style={{ fontSize: '1.15rem' }}>
+                      Submit Data Processing Job
+                    </h3>
+                    <p className="card-subtitle">
+                      Dispatches payload to AWS Lambda Function URL with Cognito Authorization
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sample Template Helpers */}
+                <div className="form-group">
+                  <div className="form-label">
+                    <span>Quick Templates</span>
+                    <div className="form-actions-inline">
+                      <button 
+                        type="button" 
+                        className="action-chip" 
+                        onClick={() => loadSample('ORDER_PROCESSING')}
+                      >
+                        Order Event
+                      </button>
+                      <button 
+                        type="button" 
+                        className="action-chip" 
+                        onClick={() => loadSample('IMAGE_RESIZE')}
+                      >
+                        S3 Pipeline
+                      </button>
+                      <button 
+                        type="button" 
+                        className="action-chip" 
+                        onClick={() => loadSample('IOT_TELEMETRY')}
+                      >
+                        IoT Sensor
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payload Textarea */}
+                <div className="form-group">
+                  <div className="form-label">
+                    <span>JSON Payload</span>
+                    <button 
+                      type="button" 
+                      className="action-chip" 
+                      onClick={formatJson}
+                    >
+                      <Sparkles size={11} style={{ display: 'inline', marginRight: '3px' }} />
+                      Prettify JSON
+                    </button>
+                  </div>
+
+                  <div className="code-editor-wrapper">
+                    <textarea 
+                      rows="8" 
+                      className="json-textarea"
+                      placeholder="Paste JSON payload here..."
+                      value={payload}
+                      onChange={(e) => setPayload(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Target Endpoint Notice */}
+                <div className="endpoint-notice" style={{ margin: '1rem 0' }}>
+                  <div className="endpoint-header">
+                    <span>TARGET LAMBDA URL:</span>
+                  </div>
+                  <div className="endpoint-url" style={{ fontSize: '0.75rem' }}>
+                    {LAMBDA_URL}
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button 
+                  id="submit-job-btn"
+                  onClick={handleSubmit}
+                  className="btn btn-primary"
+                  disabled={isSubmitting}
+                  style={{ width: '100%', padding: '0.75rem', backgroundColor: '#FF9900', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw size={16} className="spin" />
+                      <span>Sending to Lambda...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={16} />
+                      <span>Submit Job</span>
+                    </>
+                  )}
+                </button>
+                
+                {status && (
+                  <div 
+                    style={{ 
+                      marginTop: '1.25rem', 
+                      padding: '0.75rem', 
+                      borderRadius: '6px',
+                      backgroundColor: status.startsWith('Success') ? 'rgba(16, 185, 129, 0.15)' : status.startsWith('Error') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(56, 189, 248, 0.15)',
+                      border: `1px solid ${status.startsWith('Success') ? 'var(--status-completed)' : status.startsWith('Error') ? 'var(--status-failed)' : 'var(--aws-cyan)'}`,
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    <p style={{ margin: 0 }}>{status}</p>
+                  </div>
+                )}
+              </section>
+
+              {/* Job Execution Status Table */}
+              <section aria-label="Job Status Table Section">
+                <JobTable jobs={jobs} addToast={addToast} />
+              </section>
+            </div>
+          </main>
+
+          {/* Toast Stack */}
+          <div className="toast-container" aria-live="polite">
+            {toasts.map((toast) => (
+              <div key={toast.id} className={`toast ${toast.type}`}>
+                <span>{toast.message}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
+        </div>
+      )}
+    </Authenticator>
   );
 }
