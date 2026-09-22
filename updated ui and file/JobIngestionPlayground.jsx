@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 // =============================================================================
-// 1. STRICT JSON TEMPLATE DATA STRUCTURES
+// STRICT JSON TEMPLATE DATA STRUCTURES
 // Ensures fully closed objects, no trailing commas, valid integer values, and strict JSON
 // =============================================================================
 
@@ -117,7 +117,6 @@ export default function JobIngestionPlayground({
   setPulseKey,
   endpointUrl = DEFAULT_LAMBDA_URL
 }) {
-  // State management
   const [payloadText, setPayloadText] = useState(orderEventTemplate);
   const [activeTemplate, setActiveTemplate] = useState('order');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -172,7 +171,7 @@ export default function JobIngestionPlayground({
     setTimeout(() => setCopiedUrl(false), 2000);
   };
 
-  // Helper: Format / Prettify JSON
+  // Prettify JSON
   const handleFormatJson = () => {
     try {
       const parsed = JSON.parse(payloadText);
@@ -187,26 +186,23 @@ export default function JobIngestionPlayground({
     }
   };
 
-  // 2. Submit Handler with Strict Pre-flight JSON Validation
+  // Submit Handler with Strict Pre-flight JSON Validation
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    // 2.1 PRE-FLIGHT VALIDATION: Try parsing JSON before network request
+    // 1. PRE-FLIGHT VALIDATION: Try parsing JSON before network request
     let parsedPayload;
     try {
       parsedPayload = JSON.parse(payloadText);
     } catch (err) {
-      // 3. ENHANCE ERROR UI: Display exact syntax error in red error badge
       const validationErrorMessage = `Validation Error: ${err.message}`;
       setStatusMessage(validationErrorMessage);
       setStatusType('error');
-      if (addToast) {
-        addToast(validationErrorMessage, 'error');
-      }
-      return; // Stop execution before fetch
+      if (addToast) addToast(validationErrorMessage, 'error');
+      return;
     }
 
-    // 2.2 DISPATCH VALIDATED PAYLOAD TO AWS LAMBDA FUNCTION URL
+    // 2. DISPATCH VALIDATED PAYLOAD TO AWS LAMBDA FUNCTION URL
     setIsSubmitting(true);
     setStatusMessage('Dispatching payload to AWS Lambda Function URL...');
     setStatusType('info');
@@ -215,7 +211,6 @@ export default function JobIngestionPlayground({
     const startTime = performance.now();
 
     try {
-      // Optional Cognito JWT Auth
       let token = null;
       try {
         const session = await fetchAuthSession();
@@ -303,7 +298,7 @@ export default function JobIngestionPlayground({
     <section className="panel" aria-label="Ingestion Playground">
       <div className="section-head">
         <h2 className="section-title">
-          <Send size={18} color="var(--amber)" />
+          <Send size={18} />
           <span>Ingestion Playground</span>
         </h2>
         <p className="section-sub">Direct serverless HTTP POST dispatch to AWS Lambda Function URL</p>
@@ -323,7 +318,7 @@ export default function JobIngestionPlayground({
               className="icon-btn" 
               title="Copy Endpoint URL"
             >
-              {copiedUrl ? <Check size={12} color="var(--mint)" /> : <Copy size={12} />}
+              {copiedUrl ? <Check size={13} /> : <Copy size={13} />}
             </button>
           </div>
           <div className="endpoint-strip-url">POST {endpointUrl}</div>
@@ -363,17 +358,17 @@ export default function JobIngestionPlayground({
         <div>
           <div className="field-label-row">
             <span className="field-label">Event Payload (JSON Body)</span>
-            <div style={{ display: 'flex', gap: '0.45rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button type="button" className="chip" onClick={handleCopyPayload} title="Copy JSON">
                 {copiedPayload ? (
-                  <Check size={11} color="var(--mint)" style={{ display: 'inline', marginRight: '4px' }} />
+                  <Check size={12} style={{ display: 'inline', marginRight: '4px' }} />
                 ) : (
-                  <Copy size={11} style={{ display: 'inline', marginRight: '4px' }} />
+                  <Copy size={12} style={{ display: 'inline', marginRight: '4px' }} />
                 )}
                 {copiedPayload ? 'Copied' : 'Copy'}
               </button>
               <button type="button" className="chip" onClick={handleFormatJson} title="Prettify JSON indentation">
-                <Sparkles size={11} style={{ display: 'inline', marginRight: '4px' }} />
+                <Sparkles size={12} style={{ display: 'inline', marginRight: '4px' }} />
                 Format
               </button>
             </div>
@@ -416,7 +411,7 @@ export default function JobIngestionPlayground({
           )}
         </button>
 
-        {/* Status Message / Red Error Badge */}
+        {/* Status Message / Notification Banner */}
         {statusMessage && (
           <div className={`status-box ${statusType}`}>
             {statusType === 'success' && <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: '2px' }} />}

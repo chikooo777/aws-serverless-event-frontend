@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
 /**
- * Ambient Glassmorphism Background with Interactive Mouse Spotlight
- * Renders floating aurora orbs, subtle cyber-mesh texture, and dynamic cursor glow
+ * Minimalist Pearl Glassmorphic Ambient Canvas
+ * Soft pearly misty orbs and subtle slate micro-mesh overlay
  */
 export default function GlassBackground() {
   const [mousePos, setMousePos] = useState({ x: -500, y: -500 });
   const [isPointerDevice, setIsPointerDevice] = useState(true);
 
   useEffect(() => {
-    // Check if device has fine pointer (mouse) vs touch
     if (window.matchMedia('(pointer: coarse)').matches) {
       setIsPointerDevice(false);
       return;
@@ -34,16 +33,15 @@ export default function GlassBackground() {
 
   return (
     <div className="glass-backdrop-wrapper" aria-hidden="true">
-      {/* Dynamic Animated Aurora Orbs */}
-      <div className="ambient-orb orb-amber" />
-      <div className="ambient-orb orb-cyan" />
-      <div className="ambient-orb orb-purple" />
-      <div className="ambient-orb orb-mint" />
+      {/* Soft Pearl & Misty Slate Ambient Floating Clouds */}
+      <div className="ambient-orb orb-pearl-1" />
+      <div className="ambient-orb orb-pearl-2" />
+      <div className="ambient-orb orb-pearl-3" />
 
-      {/* Futuristic Cyber-Mesh Blueprint Grid */}
+      {/* Subtle Micro-Grid Blueprint Texture */}
       <div className="grid-texture-overlay" />
 
-      {/* Interactive Mouse Spotlight Aura (only for fine pointer) */}
+      {/* Soft Mouse Spotlight (Specular Highlight) */}
       {isPointerDevice && (
         <div
           className="mouse-interactive-spotlight"

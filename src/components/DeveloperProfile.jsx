@@ -13,20 +13,20 @@ export default function DeveloperProfile() {
           <div className="operator-name-row">
             <h1 className="operator-name">Durvesh Raysing</h1>
             <span className="operator-credential">
-              <Award size={13} />
+              <Award size={14} />
               <span>AWS Certified Cloud Practitioner</span>
             </span>
           </div>
 
           <div className="operator-tags">
-            <span className="tag"><Terminal size={11} color="var(--cyan)" /> Python Developer</span>
-            <span className="tag"><Cpu size={11} color="var(--amber)" /> AI/ML Engineer</span>
-            <span className="tag"><Code2 size={11} color="var(--mint)" /> MCA</span>
-            <span className="tag"><ShieldCheck size={11} color="var(--purple)" /> Cloud Architecture</span>
+            <span className="tag"><Terminal size={12} /> Python Developer</span>
+            <span className="tag"><Cpu size={12} /> AI/ML Engineer</span>
+            <span className="tag"><Code2 size={12} /> MCA</span>
+            <span className="tag"><ShieldCheck size={12} /> Cloud Architecture</span>
           </div>
 
-          <div className="tag" style={{ marginTop: '0.65rem', color: 'var(--amber-bright)', borderColor: 'rgba(255,153,0,0.35)', background: 'var(--amber-dim)' }}>
-            <Zap size={11} />
+          <div className="tag pipeline-tag">
+            <Zap size={12} />
             <span>Event-driven pipeline: SQS FIFO + Lambda + DynamoDB</span>
           </div>
         </div>
@@ -42,7 +42,7 @@ export default function DeveloperProfile() {
         >
           <Github size={15} />
           <span>GitHub</span>
-          <ExternalLink size={11} style={{ opacity: 0.5 }} />
+          <ExternalLink size={11} style={{ opacity: 0.6 }} />
         </a>
         <a 
           href="https://www.linkedin.com/in/durvesh-raysing07" 
@@ -51,9 +51,9 @@ export default function DeveloperProfile() {
           className="link-btn"
           title="Open LinkedIn Profile"
         >
-          <Linkedin size={15} color="var(--cyan)" />
+          <Linkedin size={15} />
           <span>LinkedIn</span>
-          <ExternalLink size={11} style={{ opacity: 0.5 }} />
+          <ExternalLink size={11} style={{ opacity: 0.6 }} />
         </a>
         <a 
           href="https://chikooo777.github.io" 
@@ -63,7 +63,7 @@ export default function DeveloperProfile() {
           title="Open Developer Portfolio"
         >
           <span>Portfolio</span>
-          <ExternalLink size={11} style={{ opacity: 0.5 }} />
+          <ExternalLink size={11} style={{ opacity: 0.6 }} />
         </a>
       </div>
     </div>

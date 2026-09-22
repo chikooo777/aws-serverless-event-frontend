@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Amplify } from 'aws-amplify';
 import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
-import './App.css';
 
 // Component Imports
 import DeveloperProfile from './components/DeveloperProfile';
@@ -12,22 +11,16 @@ import JobTable from './components/JobTable';
 import GlassBackground from './components/GlassBackground';
 import { INITIAL_JOBS } from './utils/mockData';
 
-// Icons
+// Icons (Using Dark Slate monochromatic palette)
 import {
-  CheckCircle2,
-  AlertCircle,
-  Info,
   Zap,
   LogOut,
-  Cpu,
-  Database,
-  Layers,
-  ShieldCheck,
-  Sparkles,
-  Server
+  CheckCircle2,
+  AlertCircle,
+  Info
 } from 'lucide-react';
 
-// Configure Amplify with Cognito User Pool
+// Configure Amplify with AWS Cognito User Pool
 Amplify.configure({
   Auth: {
     Cognito: {
@@ -41,28 +34,10 @@ const LAMBDA_FUNCTION_URL =
   import.meta.env.VITE_LAMBDA_FUNCTION_URL ||
   'https://xvctobmuszfdur5l2tvyve5j5e0hzdtw.lambda-url.ap-south-1.on.aws/';
 
-// Custom Header Component injected into Amplify Authenticator
-const authenticatorComponents = {
-  Header() {
-    return (
-      <div className="auth-custom-header">
-        <div className="auth-custom-header-badge">
-          <span className="auth-pulse-dot" />
-          <span>Cloud Ingress Terminal</span>
-        </div>
-        <h2 className="auth-custom-header-title">Welcome to the Platform</h2>
-        <p className="auth-custom-header-subtitle">
-          Sign in to access your high-throughput serverless event streaming console
-        </p>
-      </div>
-    );
-  }
-};
-
 /**
  * Main Application View
- * Transitions smoothly between the creative showcase split-screen authentication
- * and the authenticated live Mission Control dashboard.
+ * Handles state transitions between the centralized minimal Authenticator view
+ * and the authenticated heavy glassmorphic event streaming dashboard.
  */
 function MainContent() {
   const { authStatus, user, signOut } = useAuthenticator((context) => [
@@ -86,120 +61,43 @@ function MainContent() {
   };
 
   // =========================================================================
-  // VIEW 1: CREATIVE SHOWCASE & AUTHENTICATOR (Unauthenticated State)
+  // PART 1: CENTRALIZED MINIMAL AUTHENTICATOR VIEW (Unauthenticated State)
+  // Strict two-color palette, heavily rounded corners, perfectly responsive
   // =========================================================================
-  if (authStatus !== 'authenticated') {
+  const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=dashboard');
+
+  if (authStatus !== 'authenticated' && !isPreview) {
     return (
-      <div className="auth-wrapper">
-        {/* 1. Background & Floating Animated Cloud Orbs */}
-        <div className="auth-bg-orbs" aria-hidden="true">
-          <div className="cloud-orb cloud-orb-1" />
-          <div className="cloud-orb cloud-orb-2" />
-          <div className="cloud-orb cloud-orb-3" />
-          <div className="cloud-orb cloud-orb-4" />
-          <div className="auth-grid-texture" />
-        </div>
+      <div className="auth-central-viewport">
+        {/* Soft Ambient Pearl Backdrop */}
+        <GlassBackground />
 
-        {/* 2. Glassmorphic Split-Screen Card */}
-        <div className="auth-split-card">
-          {/* Left Panel: Creative Showcase */}
-          <div className="auth-left-showcase">
-            <div>
-              {/* Profile Image & Developer Name */}
-              <div className="auth-profile-wrap">
-                <div className="auth-profile-avatar-container">
-                  <img
-                    src="/profile.png"
-                    alt="Durvesh Raysing"
-                    className="auth-profile-img"
-                    onError={(e) => {
-                      if (!e.currentTarget.dataset.retried) {
-                        e.currentTarget.dataset.retried = 'true';
-                        e.currentTarget.src = './profile.png';
-                      } else {
-                        e.currentTarget.style.display = 'none';
-                        const fallback = e.currentTarget.parentElement?.querySelector('.auth-avatar-fallback');
-                        if (fallback) fallback.style.display = 'flex';
-                      }
-                    }}
-                  />
-                  <div className="auth-avatar-fallback" style={{ display: 'none' }}>
-                    DR
-                  </div>
-                </div>
-
-                <div>
-                  <span className="auth-developer-tag">
-                    <Sparkles size={12} color="#ff9900" />
-                    <span>Lead Cloud Architect</span>
-                  </span>
-                  <h1 className="auth-developer-name">Durvesh Raysing</h1>
-                </div>
-              </div>
-
-              {/* Application Title & Mission Statement */}
-              <div className="auth-app-hero">
-                <h2 className="auth-app-title">Serverless Event-Driven Processing Engine</h2>
-                <p className="auth-app-desc">
-                  High-throughput, asynchronous event orchestration designed for real-time cloud telemetry, automated queue-based buffering, and fault-tolerant DynamoDB persistence.
-                </p>
-              </div>
-
-              {/* Architecture Core Summary */}
-              <div className="auth-arch-summary-box">
-                <div className="auth-arch-label">
-                  <Cpu size={14} />
-                  <span>Architecture Core</span>
-                </div>
-                <div className="auth-arch-text">
-                  Powered by AWS Lambda, SQS, Cognito & DynamoDB
-                </div>
-              </div>
-
-              {/* Service Feature Tags */}
-              <div className="auth-tags-grid">
-                <span className="auth-tag-pill">
-                  <Zap size={11} color="#ff9900" /> Lambda Function URL
-                </span>
-                <span className="auth-tag-pill">
-                  <Layers size={11} color="#2dd4e8" /> SQS FIFO Queue
-                </span>
-                <span className="auth-tag-pill">
-                  <ShieldCheck size={11} color="#a855f7" /> Amazon Cognito JWT
-                </span>
-                <span className="auth-tag-pill">
-                  <Database size={11} color="#3ecf8e" /> DynamoDB Single-Table
-                </span>
-                <span className="auth-tag-pill">
-                  <Server size={11} color="#ffad33" /> Zero Cold-Start Bus
-                </span>
-              </div>
+        {/* Centralized Frosted Glass Login Card */}
+        <div className="auth-central-card">
+          <div className="auth-card-header">
+            <div className="auth-card-icon-wrap" aria-hidden="true">
+              <Zap size={24} />
             </div>
-
-            {/* Showcase Status Footer */}
-            <div className="auth-showcase-footer">
-              <span className="auth-status-online">
-                <span className="auth-pulse-dot" />
-                <span>Production Ingress Live</span>
-              </span>
-              <span>Region: ap-south-1</span>
-            </div>
+            <h1 className="auth-card-title">Serverless Event Console</h1>
+            <p className="auth-card-sub">
+              Sign in to access your cloud event ingress pipeline and real-time execution ledger
+            </p>
           </div>
 
-          {/* Right Panel: Amplify Authenticator */}
-          <div className="auth-right-panel">
-            <Authenticator components={authenticatorComponents} />
-          </div>
+          {/* Amplify Authenticator Component with Strict Two-Color Design Overrides */}
+          <Authenticator />
         </div>
       </div>
     );
   }
 
   // =========================================================================
-  // VIEW 2: AUTHENTICATED SERVERLESS EVENT CONSOLE (Authenticated State)
+  // PART 2: MAIN DASHBOARD (Heavy Glassmorphism, Authenticated State)
+  // Frosted glass panels, Dark Slate lines & typography, ample breathing space
   // =========================================================================
   return (
     <div className="app-container">
+      {/* Ambient Pearl Misty Canvas */}
       <GlassBackground />
 
       {/* Top Rail Navbar */}
@@ -234,13 +132,17 @@ function MainContent() {
         </div>
       </header>
 
-      {/* Main Mission Control Content */}
+      {/* Main Glassmorphic Dashboard */}
       <main className="main-content">
+        {/* Lead Cloud Architect Developer Profile */}
         <DeveloperProfile />
+
+        {/* Reactive Pipeline Architecture Trace Banner */}
         <ArchitectureBanner pulseKey={pulseKey} />
 
+        {/* Core Operational Grid */}
         <div className="dashboard-grid">
-          {/* Ingestion Playground */}
+          {/* Ingestion Playground (Event Submission Area) */}
           <JobIngestionPlayground
             onJobCreated={(newJob) => {
               setLastSubmission(newJob);
@@ -254,7 +156,7 @@ function MainContent() {
             endpointUrl={LAMBDA_FUNCTION_URL}
           />
 
-          {/* Right: Latest Ingress Status + Job Ledger Table */}
+          {/* Job Processing Status Visualizer & Job Ledger */}
           <section aria-label="Job Processing Status Visualizer">
             {lastSubmission && (
               <div className="panel latest-card">
@@ -276,13 +178,13 @@ function MainContent() {
         </div>
       </main>
 
-      {/* Global Reactive Toast Stack */}
+      {/* Global Toast Notification Stack */}
       <div className="toast-stack" aria-live="polite">
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast ${toast.type}`}>
-            {toast.type === 'success' && <CheckCircle2 size={16} color="var(--mint)" />}
-            {toast.type === 'error' && <AlertCircle size={16} color="var(--coral)" />}
-            {toast.type === 'info' && <Info size={16} color="var(--cyan)" />}
+            {toast.type === 'success' && <CheckCircle2 size={16} />}
+            {toast.type === 'error' && <AlertCircle size={16} />}
+            {toast.type === 'info' && <Info size={16} />}
             <span>{toast.message}</span>
           </div>
         ))}

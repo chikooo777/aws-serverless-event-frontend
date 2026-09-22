@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Eye, Search, Filter, Database, Clock, X, Terminal, CheckCircle2 } from 'lucide-react';
+import { Copy, Check, Eye, Search, Filter, Database, Clock, X, Terminal } from 'lucide-react';
 
 export default function JobTable({ jobs, addToast }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,20 +33,20 @@ export default function JobTable({ jobs, addToast }) {
 
   return (
     <div className="panel" aria-label="Job Processing Status Visualizer">
-      <div className="section-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+      <div className="section-head table-header-row">
         <div>
           <h2 className="section-title">
-            <Database size={18} color="var(--cyan)" />
+            <Database size={18} />
             <span>Job Ledger</span>
           </h2>
           <p className="section-sub">Execution history committed to DynamoDB</p>
         </div>
-        <div className="tag" style={{ color: 'var(--cyan)', borderColor: 'rgba(45,212,232,0.3)', background: 'var(--cyan-dim)' }}>
+        <div className="tag events-logged-pill">
           <span>{filteredJobs.length} Events Logged</span>
         </div>
       </div>
 
-      <div className="table-toolbar" style={{ marginTop: '1rem' }}>
+      <div className="table-toolbar">
         <div className="search-wrap">
           <Search size={14} className="search-icon" />
           <input
@@ -59,7 +59,7 @@ export default function JobTable({ jobs, addToast }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Filter size={13} color="var(--slate)" />
+          <Filter size={13} />
           <select
             className="filter-select"
             value={statusFilter}
@@ -94,18 +94,18 @@ export default function JobTable({ jobs, addToast }) {
                     <div className="uuid-cell">
                       <span>{job.jobId.slice(0, 18)}...</span>
                       <button className="icon-btn" onClick={() => handleCopyId(job.jobId)} title="Copy full ID">
-                        {copiedId === job.jobId ? <Check size={13} color="var(--mint)" /> : <Copy size={13} />}
+                        {copiedId === job.jobId ? <Check size={13} /> : <Copy size={13} />}
                       </button>
                     </div>
                   </td>
-                  <td style={{ fontWeight: 600, color: 'var(--ink)' }}>{job.eventType || 'DataProcessing'}</td>
+                  <td style={{ fontWeight: 600 }}>{job.eventType || 'DataProcessing'}</td>
                   <td>
-                    <span style={{ color: 'var(--slate)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span className="timestamp-cell">
                       <Clock size={12} />
                       {job.timestamp}
                     </span>
                   </td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--slate)' }}>
+                  <td className="latency-cell">
                     {job.latencyMs ? `${job.latencyMs} ms` : '—'}
                   </td>
                   <td>
@@ -115,7 +115,7 @@ export default function JobTable({ jobs, addToast }) {
                     </span>
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <button className="btn" style={{ padding: '0.35rem 0.75rem', fontSize: '0.76rem' }} onClick={() => setSelectedPayload(job)}>
+                    <button className="btn btn-sm" onClick={() => setSelectedPayload(job)}>
                       <Eye size={12} />
                       <span>View</span>
                     </button>
@@ -126,7 +126,7 @@ export default function JobTable({ jobs, addToast }) {
               <tr>
                 <td colSpan={6}>
                   <div className="empty-state">
-                    <Database size={32} style={{ opacity: 0.35, color: 'var(--cyan)' }} />
+                    <Database size={32} style={{ opacity: 0.3 }} />
                     <p>No jobs found</p>
                     <p>Submit a payload from the Ingestion Playground to see it recorded here.</p>
                   </div>
@@ -144,7 +144,7 @@ export default function JobTable({ jobs, addToast }) {
             <div className="modal-header">
               <div>
                 <h3 className="modal-title">
-                  <Terminal size={16} color="var(--cyan)" />
+                  <Terminal size={16} />
                   <span>Payload Inspector: {selectedPayload.jobId.slice(0, 18)}...</span>
                 </h3>
                 <span className="modal-meta">
@@ -154,12 +154,11 @@ export default function JobTable({ jobs, addToast }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <button
                   type="button"
-                  className="btn"
-                  style={{ padding: '0.35rem 0.7rem', fontSize: '0.75rem' }}
+                  className="btn btn-sm"
                   onClick={() => handleCopyModalPayload(selectedPayload.payload)}
                   title="Copy payload JSON"
                 >
-                  {copiedModalJson ? <Check size={12} color="var(--mint)" /> : <Copy size={12} />}
+                  {copiedModalJson ? <Check size={12} /> : <Copy size={12} />}
                   <span>{copiedModalJson ? 'Copied' : 'Copy'}</span>
                 </button>
                 <button className="icon-btn" onClick={() => setSelectedPayload(null)} title="Close Modal">
