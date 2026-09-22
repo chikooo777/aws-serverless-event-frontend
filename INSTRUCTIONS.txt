@@ -1,0 +1,22 @@
+HOW TO RUN THE APP
+------------------
+1. Install dependencies:
+   npm install
+
+2. Run the application:
+   npm run dev
+
+3. Open in browser:
+   http://localhost:3000
+
+
+HOW TO PUSH CODE TO GITHUB
+--------------------------
+1. Save all changed files:
+   git add .
+
+2. Commit changes:
+   git commit -m "update code"
+
+3. Push to GitHub:
+   git push origin main

@@ -7,11 +7,14 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
-  Globe
+  Globe,
+  Copy,
+  Check,
+  Zap
 } from 'lucide-react';
 
 // =============================================================================
-// STRICT JSON TEMPLATE DATA STRUCTURES
+// 1. STRICT JSON TEMPLATE DATA STRUCTURES
 // Ensures fully closed objects, no trailing commas, valid integer values, and strict JSON
 // =============================================================================
 
@@ -116,12 +119,16 @@ export default function JobIngestionPlayground({
 }) {
   // State management
   const [payloadText, setPayloadText] = useState(orderEventTemplate);
+  const [activeTemplate, setActiveTemplate] = useState('order');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState('info'); // 'success' | 'error' | 'info'
+  const [copiedPayload, setCopiedPayload] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
   // Pre-load Predefined Templates
   const handleSelectTemplate = (templateType) => {
+    setActiveTemplate(templateType);
     let selected = '';
     let name = '';
 
@@ -149,6 +156,22 @@ export default function JobIngestionPlayground({
     if (addToast) addToast(`Loaded template: ${name}`, 'info');
   };
 
+  // Copy current payload to clipboard
+  const handleCopyPayload = () => {
+    navigator.clipboard.writeText(payloadText);
+    setCopiedPayload(true);
+    if (addToast) addToast('Payload JSON copied to clipboard', 'info');
+    setTimeout(() => setCopiedPayload(false), 2000);
+  };
+
+  // Copy Lambda endpoint URL
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(endpointUrl);
+    setCopiedUrl(true);
+    if (addToast) addToast('Lambda Function URL copied', 'info');
+    setTimeout(() => setCopiedUrl(false), 2000);
+  };
+
   // Helper: Format / Prettify JSON
   const handleFormatJson = () => {
     try {
@@ -164,16 +187,16 @@ export default function JobIngestionPlayground({
     }
   };
 
-  // Submit Handler with Strict Pre-flight JSON Validation
+  // 2. Submit Handler with Strict Pre-flight JSON Validation
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    // 1. PRE-FLIGHT VALIDATION: Try parsing JSON before network request
+    // 2.1 PRE-FLIGHT VALIDATION: Try parsing JSON before network request
     let parsedPayload;
     try {
       parsedPayload = JSON.parse(payloadText);
     } catch (err) {
-      // Catch parser crash immediately and display exact syntax error in red error badge
+      // 3. ENHANCE ERROR UI: Display exact syntax error in red error badge
       const validationErrorMessage = `Validation Error: ${err.message}`;
       setStatusMessage(validationErrorMessage);
       setStatusType('error');
@@ -183,7 +206,7 @@ export default function JobIngestionPlayground({
       return; // Stop execution before fetch
     }
 
-    // 2. DISPATCH VALIDATED PAYLOAD TO AWS LAMBDA FUNCTION URL
+    // 2.2 DISPATCH VALIDATED PAYLOAD TO AWS LAMBDA FUNCTION URL
     setIsSubmitting(true);
     setStatusMessage('Dispatching payload to AWS Lambda Function URL...');
     setStatusType('info');
@@ -198,7 +221,7 @@ export default function JobIngestionPlayground({
         const session = await fetchAuthSession();
         token = session.tokens?.idToken?.toString();
       } catch {
-        // Authenticator may not be configured or session absent in dev
+        // Authenticator session absent in dev
       }
 
       const response = await fetch(endpointUrl, {
@@ -280,18 +303,28 @@ export default function JobIngestionPlayground({
     <section className="panel" aria-label="Ingestion Playground">
       <div className="section-head">
         <h2 className="section-title">
-          <Send size={17} color="var(--amber)" />
-          <span>Ingestion playground</span>
+          <Send size={18} color="var(--amber)" />
+          <span>Ingestion Playground</span>
         </h2>
-        <p className="section-sub">Send a payload straight to the live Lambda Function URL</p>
+        <p className="section-sub">Direct serverless HTTP POST dispatch to AWS Lambda Function URL</p>
       </div>
 
       <div className="ingestion-body">
         {/* Cloud Ingress Endpoint Indicator */}
         <div className="endpoint-strip">
-          <div className="endpoint-strip-label">
-            <Globe size={12} />
-            <span>Target endpoint</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="endpoint-strip-label">
+              <Globe size={12} />
+              <span>Target Lambda Ingress Endpoint</span>
+            </div>
+            <button 
+              type="button" 
+              onClick={handleCopyUrl} 
+              className="icon-btn" 
+              title="Copy Endpoint URL"
+            >
+              {copiedUrl ? <Check size={12} color="var(--mint)" /> : <Copy size={12} />}
+            </button>
           </div>
           <div className="endpoint-strip-url">POST {endpointUrl}</div>
         </div>
@@ -299,25 +332,25 @@ export default function JobIngestionPlayground({
         {/* Quick Template Switcher */}
         <div>
           <div className="field-label-row">
-            <span className="field-label">Quick templates</span>
+            <span className="field-label">Pre-configured Event Templates</span>
             <div className="template-chips">
               <button
                 type="button"
-                className="chip"
+                className={`chip ${activeTemplate === 'order' ? 'active' : ''}`}
                 onClick={() => handleSelectTemplate('order')}
               >
                 Order event
               </button>
               <button
                 type="button"
-                className="chip"
+                className={`chip ${activeTemplate === 's3' ? 'active' : ''}`}
                 onClick={() => handleSelectTemplate('s3')}
               >
                 S3 pipeline
               </button>
               <button
                 type="button"
-                className="chip"
+                className={`chip ${activeTemplate === 'iot' ? 'active' : ''}`}
                 onClick={() => handleSelectTemplate('iot')}
               >
                 IoT device
@@ -329,11 +362,21 @@ export default function JobIngestionPlayground({
         {/* Code Editor Area */}
         <div>
           <div className="field-label-row">
-            <span className="field-label">Event payload (JSON)</span>
-            <button type="button" className="chip" onClick={handleFormatJson}>
-              <Sparkles size={11} style={{ display: 'inline', marginRight: '4px' }} />
-              Format
-            </button>
+            <span className="field-label">Event Payload (JSON Body)</span>
+            <div style={{ display: 'flex', gap: '0.45rem' }}>
+              <button type="button" className="chip" onClick={handleCopyPayload} title="Copy JSON">
+                {copiedPayload ? (
+                  <Check size={11} color="var(--mint)" style={{ display: 'inline', marginRight: '4px' }} />
+                ) : (
+                  <Copy size={11} style={{ display: 'inline', marginRight: '4px' }} />
+                )}
+                {copiedPayload ? 'Copied' : 'Copy'}
+              </button>
+              <button type="button" className="chip" onClick={handleFormatJson} title="Prettify JSON indentation">
+                <Sparkles size={11} style={{ display: 'inline', marginRight: '4px' }} />
+                Format
+              </button>
+            </div>
           </div>
 
           <div className="editor-shell">
@@ -347,13 +390,13 @@ export default function JobIngestionPlayground({
               spellCheck="false"
             />
             <div className="editor-footer">
-              <span>UTF-8</span>
+              <span>UTF-8 Encoding</span>
               <span>{byteSize} bytes</span>
             </div>
           </div>
         </div>
 
-        {/* Action Button */}
+        {/* Primary Action Button */}
         <button
           id="submit-job-btn"
           onClick={handleSubmit}
@@ -363,12 +406,12 @@ export default function JobIngestionPlayground({
           {isSubmitting ? (
             <>
               <RefreshCw size={17} className="spin" />
-              <span>Sending to Lambda...</span>
+              <span>Invoking AWS Lambda Function URL...</span>
             </>
           ) : (
             <>
-              <Send size={17} />
-              <span>Send event</span>
+              <Zap size={17} />
+              <span>Send Event to Cloud Ingress</span>
             </>
           )}
         </button>

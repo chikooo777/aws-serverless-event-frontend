@@ -9,6 +9,7 @@ import DeveloperProfile from './components/DeveloperProfile';
 import ArchitectureBanner from './components/ArchitectureBanner';
 import JobIngestionPlayground from './components/JobIngestionPlayground';
 import JobTable from './components/JobTable';
+import GlassBackground from './components/GlassBackground';
 import { INITIAL_JOBS } from './utils/mockData';
 
 // Icons
@@ -57,6 +58,7 @@ export default function App() {
     <Authenticator>
       {({ signOut, user }) => (
         <div className="app-container">
+          <GlassBackground />
           {/* Top rail */}
           <header className="navbar">
             <div className="nav-wrapper">
