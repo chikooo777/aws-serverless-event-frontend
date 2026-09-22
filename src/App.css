@@ -1,0 +1,582 @@
+/* ==========================================================================
+   App.css — Creative Glassmorphism Layout & Authenticator Wrapper
+   ========================================================================== */
+
+/* Fullscreen Center Viewport */
+.auth-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-color: #06080d;
+  color: #f8fafc;
+  padding: 2rem 1.5rem;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* ---------------- 1. Background & Floating Cloud Orbs ---------------- */
+.auth-bg-orbs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-grid-texture {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0),
+    linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 32px 32px, 64px 64px, 64px 64px;
+  opacity: 0.6;
+}
+
+/* Floating Cloud Orbs */
+.cloud-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.45;
+  will-change: transform;
+}
+
+.cloud-orb-1 {
+  top: -10%;
+  left: 10%;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, #ff9900 0%, rgba(234, 88, 12, 0.5) 45%, transparent 75%);
+  animation: floatCloud1 22s ease-in-out infinite alternate;
+}
+
+.cloud-orb-2 {
+  bottom: -15%;
+  left: -5%;
+  width: 580px;
+  height: 580px;
+  background: radial-gradient(circle, #2dd4e8 0%, rgba(14, 165, 233, 0.4) 50%, transparent 75%);
+  animation: floatCloud2 26s ease-in-out infinite alternate;
+}
+
+.cloud-orb-3 {
+  top: 35%;
+  right: -10%;
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, #a855f7 0%, rgba(99, 102, 241, 0.4) 55%, transparent 75%);
+  animation: floatCloud3 28s ease-in-out infinite alternate;
+}
+
+.cloud-orb-4 {
+  bottom: 5%;
+  right: 25%;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, #3ecf8e 0%, rgba(16, 185, 129, 0.3) 50%, transparent 75%);
+  animation: floatCloud1 18s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes floatCloud1 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-60px, 70px, 0) scale(1.12); }
+  100% { transform: translate3d(80px, -40px, 0) scale(0.92); }
+}
+
+@keyframes floatCloud2 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(80px, -80px, 0) scale(1.15); }
+  100% { transform: translate3d(-40px, 50px, 0) scale(0.9); }
+}
+
+@keyframes floatCloud3 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-70px, -60px, 0) scale(1.1); }
+  100% { transform: translate3d(60px, 60px, 0) scale(0.95); }
+}
+
+/* ---------------- 2. Glassmorphic Split-Screen Card ---------------- */
+.auth-split-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1140px;
+  min-height: 640px;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  background: rgba(14, 18, 28, 0.65);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  box-shadow: 
+    0 25px 60px -15px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 30px 0 rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+  animation: cardFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------------- Left Panel: Creative Showcase ---------------- */
+.auth-left-showcase {
+  padding: 3.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(
+    145deg, 
+    rgba(26, 32, 50, 0.6) 0%, 
+    rgba(14, 18, 28, 0.4) 100%
+  );
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+}
+
+.auth-left-showcase::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, rgba(255, 153, 0, 0.3), transparent);
+}
+
+/* Profile Badge & Avatar */
+.auth-profile-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.auth-profile-avatar-container {
+  width: 76px;
+  height: 76px;
+  border-radius: 20px;
+  padding: 3px;
+  background: linear-gradient(135deg, #ff9900, #ea580c, #2dd4e8);
+  box-shadow: 0 8px 24px rgba(255, 153, 0, 0.35);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.auth-profile-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 17px;
+  object-fit: cover;
+  background: #12151d;
+  display: block;
+}
+
+.auth-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 17px;
+  background: #12151d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: #ff9900;
+}
+
+.auth-developer-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #ffad33;
+  margin-bottom: 0.25rem;
+}
+
+.auth-developer-name {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 1.95rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #ffffff;
+  line-height: 1.15;
+  background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* App Title & Mission */
+.auth-app-hero {
+  margin-bottom: 2.5rem;
+}
+
+.auth-app-title {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #2dd4e8;
+  line-height: 1.3;
+  margin-bottom: 0.85rem;
+  letter-spacing: -0.015em;
+}
+
+.auth-app-desc {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  line-height: 1.65;
+}
+
+/* Architecture Pill Summary */
+.auth-arch-summary-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.1rem 1.35rem;
+  margin-bottom: 2rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.auth-arch-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: #ff9900;
+  margin-bottom: 0.5rem;
+}
+
+.auth-arch-text {
+  font-size: 0.86rem;
+  color: #e2e8f0;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Architecture Tags */
+.auth-tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.auth-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.auth-tag-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Footer Status */
+.auth-showcase-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.auth-status-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #3ecf8e;
+  font-weight: 600;
+}
+
+.auth-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #3ecf8e;
+  box-shadow: 0 0 8px #3ecf8e;
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ---------------- Right Panel: Amplify Authenticator ---------------- */
+.auth-right-panel {
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(10, 13, 20, 0.4);
+  position: relative;
+}
+
+/* Custom Header slot injected into Authenticator */
+.auth-custom-header {
+  text-align: center;
+  margin-bottom: 1.6rem;
+  width: 100%;
+}
+
+.auth-custom-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(45, 212, 232, 0.14);
+  border: 1px solid rgba(45, 212, 232, 0.35);
+  color: #67e8f9;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 0.85rem;
+}
+
+.auth-custom-header-title {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.45rem;
+}
+
+.auth-custom-header-subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* ---------------- 3. Styling Integration: Amplify CSS Overrides ---------------- */
+
+/* Root Authenticator Theme Overrides */
+[data-amplify-authenticator] {
+  --amplify-colors-background-primary: transparent !important;
+  --amplify-colors-background-secondary: transparent !important;
+  --amplify-colors-font-primary: #f8fafc !important;
+  --amplify-colors-font-secondary: #94a3b8 !important;
+  --amplify-colors-border-primary: rgba(255, 255, 255, 0.14) !important;
+  --amplify-colors-border-secondary: rgba(255, 255, 255, 0.08) !important;
+  
+  --amplify-colors-brand-primary-80: #ff9900 !important;
+  --amplify-colors-brand-primary-90: #ea580c !important;
+  --amplify-colors-brand-primary-100: #c2410c !important;
+  
+  --amplify-components-tabs-item-color: #94a3b8 !important;
+  --amplify-components-tabs-item-active-color: #ff9900 !important;
+  --amplify-components-tabs-item-active-border-color: #ff9900 !important;
+  
+  --amplify-components-fieldcontrol-color: #ffffff !important;
+  --amplify-components-fieldcontrol-background-color: rgba(6, 9, 15, 0.75) !important;
+  --amplify-components-fieldcontrol-border-color: rgba(255, 255, 255, 0.16) !important;
+  --amplify-radii-medium: 12px !important;
+  
+  width: 100% !important;
+  max-width: 420px !important;
+}
+
+/* Container Box */
+[data-amplify-authenticator] [data-amplify-container] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+}
+
+[data-amplify-authenticator] [data-amplify-router] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Input Fields */
+[data-amplify-authenticator] .amplify-input {
+  background: rgba(6, 9, 15, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-amplify-authenticator] .amplify-input:focus {
+  border-color: #ff9900 !important;
+  box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.25) !important;
+  outline: none !important;
+}
+
+/* Input Labels */
+[data-amplify-authenticator] .amplify-label {
+  color: #cbd5e1 !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  margin-bottom: 0.35rem !important;
+}
+
+/* Primary Action Buttons (Sign In / Create Account) */
+[data-amplify-authenticator] .amplify-button--primary {
+  background: linear-gradient(135deg, #ff9900, #ea580c) !important;
+  color: #06080d !important;
+  font-weight: 800 !important;
+  font-size: 0.95rem !important;
+  padding: 0.85rem !important;
+  border-radius: 12px !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 24px rgba(234, 88, 12, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  margin-top: 1rem !important;
+}
+
+[data-amplify-authenticator] .amplify-button--primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 30px rgba(255, 153, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  filter: brightness(1.08) !important;
+}
+
+/* Secondary & Text Buttons (Forgot Password, etc.) */
+[data-amplify-authenticator] .amplify-button--link {
+  color: #2dd4e8 !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  text-decoration: none !important;
+}
+
+[data-amplify-authenticator] .amplify-button--link:hover {
+  color: #67e8f9 !important;
+  text-decoration: underline !important;
+}
+
+/* Tabs (Sign In vs Create Account) */
+[data-amplify-authenticator] .amplify-tabs {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  margin-bottom: 1.5rem !important;
+}
+
+[data-amplify-authenticator] .amplify-tabs-item {
+  color: #94a3b8 !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  padding: 0.75rem 1rem !important;
+}
+
+[data-amplify-authenticator] .amplify-tabs-item--active {
+  color: #ff9900 !important;
+  border-bottom: 2px solid #ff9900 !important;
+}
+
+/* Password eye show/hide icon */
+[data-amplify-authenticator] .amplify-field-group__control button {
+  color: #94a3b8 !important;
+}
+[data-amplify-authenticator] .amplify-field-group__control button:hover {
+  color: #ffffff !important;
+}
+
+/* ---------------- Responsive Layout (Mobile & Tablet) ---------------- */
+@media (max-width: 980px) {
+  .auth-wrapper {
+    padding: 1.5rem 1rem;
+    align-items: flex-start;
+  }
+
+  .auth-split-card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    border-radius: 20px;
+  }
+
+  .auth-left-showcase {
+    padding: 2.5rem 2rem;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .auth-right-panel {
+    padding: 2.5rem 1.8rem;
+  }
+
+  .auth-developer-name {
+    font-size: 1.65rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-wrapper {
+    padding: 0.8rem 0.5rem;
+  }
+
+  .auth-split-card {
+    border-radius: 16px;
+  }
+
+  .auth-left-showcase {
+    padding: 1.8rem 1.25rem;
+  }
+
+  .auth-profile-wrap {
+    gap: 1rem;
+  }
+
+  .auth-profile-avatar-container {
+    width: 62px;
+    height: 62px;
+    border-radius: 16px;
+  }
+
+  .auth-developer-name {
+    font-size: 1.4rem;
+  }
+
+  .auth-app-title {
+    font-size: 1.15rem;
+  }
+
+  .auth-right-panel {
+    padding: 2rem 1.25rem;
+  }
+
+  .auth-custom-header-title {
+    font-size: 1.35rem;
+  }
+}
