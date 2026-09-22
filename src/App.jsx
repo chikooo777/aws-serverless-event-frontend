@@ -132,51 +132,56 @@ function MainContent() {
         </div>
       </header>
 
-      {/* Main Glassmorphic Dashboard */}
-      <main className="main-content">
-        {/* Lead Cloud Architect Developer Profile */}
-        <DeveloperProfile />
+      {/* Main Dashboard Layout with Fixed Vertical Event Pipeline Sidebar */}
+      <div className="dashboard-layout-container">
+        {/* Left Side: Fixed/Sticky Vertical Event Pipeline Side Menu */}
+        <aside className="pipeline-sidebar-wrapper">
+          <ArchitectureBanner pulseKey={pulseKey} />
+        </aside>
 
-        {/* Reactive Pipeline Architecture Trace Banner */}
-        <ArchitectureBanner pulseKey={pulseKey} />
+        {/* Right Side: Main Scrollable Content */}
+        <main className="dashboard-main-scrollable">
+          {/* Lead Cloud Architect Developer Profile */}
+          <DeveloperProfile />
 
-        {/* Core Operational Grid */}
-        <div className="dashboard-grid">
-          {/* Ingestion Playground (Event Submission Area) */}
-          <JobIngestionPlayground
-            onJobCreated={(newJob) => {
-              setLastSubmission(newJob);
-              setJobs((prev) => [newJob, ...prev]);
-            }}
-            onJobFailed={(failedJob) => {
-              setLastSubmission(failedJob);
-            }}
-            addToast={addToast}
-            setPulseKey={setPulseKey}
-            endpointUrl={LAMBDA_FUNCTION_URL}
-          />
+          {/* Core Operational Grid (Ingestion Playground + Job Ledger) */}
+          <div className="dashboard-grid">
+            {/* Ingestion Playground (Event Submission Area) */}
+            <JobIngestionPlayground
+              onJobCreated={(newJob) => {
+                setLastSubmission(newJob);
+                setJobs((prev) => [newJob, ...prev]);
+              }}
+              onJobFailed={(failedJob) => {
+                setLastSubmission(failedJob);
+              }}
+              addToast={addToast}
+              setPulseKey={setPulseKey}
+              endpointUrl={LAMBDA_FUNCTION_URL}
+            />
 
-          {/* Job Processing Status Visualizer & Job Ledger */}
-          <section aria-label="Job Processing Status Visualizer">
-            {lastSubmission && (
-              <div className="panel latest-card">
-                <div className="latest-card-head">
-                  <span className="latest-card-label">Latest ingress response</span>
-                  <span className={`status-badge ${lastSubmission.status.toLowerCase()}`}>
-                    <span className="dot" />
-                    {lastSubmission.status}
-                  </span>
+            {/* Job Processing Status Visualizer & Job Ledger */}
+            <section aria-label="Job Processing Status Visualizer">
+              {lastSubmission && (
+                <div className="panel latest-card">
+                  <div className="latest-card-head">
+                    <span className="latest-card-label">Latest ingress response</span>
+                    <span className={`status-badge ${lastSubmission.status.toLowerCase()}`}>
+                      <span className="dot" />
+                      {lastSubmission.status}
+                    </span>
+                  </div>
+                  <div className="latest-card-row">
+                    <div className="latest-uuid">{lastSubmission.jobId}</div>
+                    <div className="latest-latency">{lastSubmission.latencyMs} ms</div>
+                  </div>
                 </div>
-                <div className="latest-card-row">
-                  <div className="latest-uuid">{lastSubmission.jobId}</div>
-                  <div className="latest-latency">{lastSubmission.latencyMs} ms</div>
-                </div>
-              </div>
-            )}
-            <JobTable jobs={jobs} addToast={addToast} />
-          </section>
-        </div>
-      </main>
+              )}
+              <JobTable jobs={jobs} addToast={addToast} />
+            </section>
+          </div>
+        </main>
+      </div>
 
       {/* Global Toast Notification Stack */}
       <div className="toast-stack" aria-live="polite">
