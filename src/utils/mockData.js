@@ -29,23 +29,28 @@ export const SAMPLE_PAYLOADS = {
   ORDER_PROCESSING: {
     name: 'EventBridge Order Fulfillment Event',
     payload: {
+      eventType: 'OrderPlaced',
       eventSource: 'ecommerce.checkout',
       detailType: 'OrderPlaced',
       orderId: 'ord-883491-us',
       currency: 'USD',
-      totalAmount: 249.99,
+      totalAmount: 250,
       customer: {
         customerId: 'cust_90184',
+        name: 'Jane Doe',
+        email: 'jane.doe@example.com',
         tier: 'AWS_PARTNER_VIP',
         shippingAddress: {
+          street: '123 Cloud Way',
           city: 'Seattle',
           state: 'WA',
+          postalCode: '98101',
           country: 'USA'
         }
       },
       items: [
-        { sku: 'AWS-DEV-HOODIE', quantity: 2, unitPrice: 75.00 },
-        { sku: 'AWS-CERT-VOUCHER', quantity: 1, unitPrice: 99.99 }
+        { sku: 'AWS-DEV-HOODIE', quantity: 2, unitPrice: 75 },
+        { sku: 'AWS-CERT-VOUCHER', quantity: 1, unitPrice: 100 }
       ],
       fulfillmentRoute: 'SQS_HIGH_PRIORITY_BUS'
     }
@@ -53,18 +58,19 @@ export const SAMPLE_PAYLOADS = {
   IOT_TELEMETRY: {
     name: 'AWS IoT Core Device Telemetry',
     payload: {
+      eventType: 'DeviceTelemetry',
       deviceId: 'edge-sensor-us-west-401',
       deviceType: 'IndustrialTemperatureVibration',
       firmwareVersion: 'v2.4.1',
-      timestampUtc: '2026-09-21T20:12:00Z',
-      telemetry: {
-        temperatureCelsius: 68.4,
-        ambientHumidityPercent: 42.1,
-        vibrationRms: 0.082,
-        batteryPercentage: 94.5
+      timestampUtc: '2026-09-22T20:12:00Z',
+      sensorData: {
+        temperature: 68,
+        humidity: 42,
+        vibration: 8,
+        battery: 95
       },
       alertThresholds: {
-        maxTempAllowed: 85.0,
+        maxTempAllowed: 85,
         triggerSnsAlertOnBreach: true
       }
     }
